@@ -1,0 +1,78 @@
+Tarantool/Box IPROTO protocol.
+; The atoms of representation in the protocol include:
+;
+; int8 - a single 8-bit byte (i.e. an octet)
+;
+; int32 - a 32-bit integer in little-endian format (Intel x86)
+
+; int64 - a 64-bit integer in little-endian format (Intel x86)
+;
+; int32_varint - a 1 to 5 byte representation of an integer
+;
+; All requests and responses utilize the same basic structure:
+
+<packet> ::= <request> | <response>
+<request> ::= <header><request_body>
+<response> ::= <header><return_code>{<response_body>}
+<header> ::= <type><body_length><request_id>
+<type> ::= <int32>
+<body_length> ::= <int32>
+<request_id> ::= <int32>
+<request_body> ::= <select_request_body> |
+                   <insert_request_body> |
+                   <update_request_body> |
+                   <delete_request_body> |
+                   <call_request_body>
+
+<response_body> ::= <select_response_body> |
+                    <insert_response_body> |
+                    <update_response_body> |
+                    <delete_response_body>
+
+<select_request_body> ::= <space_no><index_no>
+                          <offset><limit><count><tuple>+
+
+<space_no> ::= <int32>
+<index_no> ::= <int32>
+<offset> ::= <int32>
+<limit> ::= <int32>
+<count> ::= <int32>
+<tuple> ::= <cardinality><field>+
+<cardinality> ::= <int32>
+<field> ::= <int32_varint><data>
+<data> ::= <int8>+
+<int32_varint> ::= <int8>+
+
+<select_response_body> ::= <count><fq_tuple>*
+<fq_tuple> ::= <size><tuple>
+<size> ::= <int32>
+
+<insert_request_body> ::= <space_no><flags><tuple>
+<flags> ::= <int32>
+
+<insert_response_body> ::= <select_response_body>
+
+<update_request_body> ::= <insert_request_body><count><operation>+
+<operation> ::= <field_no><op_code><op_arg>
+<field_no> ::= <int32>
+<op_code> ::= <int8> # 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
+<op_arg> ::= <field>
+
+<splice_field_data> ::= <offset><length><string>
+<offset> ::= <field>
+<length> ::= <field>
+<string> ::= <field>
+
+<update_response_body> ::= <select_response_body>
+
+<delete_request_body> ::= <insert_request_body>
+
+<delete_response_body> ::= <select_response_body>
+
+<call_request_body> ::= <flags><proc_name><tuple>
+<proc_name> ::= <field>
+
+<call_response_body> ::= <select_response_body>
+
+<return_code> ::= <int32>
+

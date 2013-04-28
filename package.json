@@ -1,0 +1,28 @@
+{
+  "name": "node-tarantool-transport",
+  "version": "0.0.0",
+  "description": "A node.js transport for Tarantool",
+
+  "main": "lib",
+  "scripts": {
+    "build": "coffee --bare --compile --lint --output lib src/*.coffee",
+    "prepublish": "coffee --bare --compile --lint --output lib src/*.coffee",
+    "postpublish": "rm -rf lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devgru/node-tarantool-transport.git"
+  },
+  "dependencies": {
+    "leb": "*"
+  },
+  "devDependencies": {
+    "coffee-script": "*"
+  },
+
+  "keywords": [
+    "tarantool"
+  ],
+  "author": "Devgru <git@devg.ru>",
+  "license": "MIT"
+}
