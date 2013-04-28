@@ -35,22 +35,25 @@ class TarantoolTransport
     
     processRawResponse: (data) ->
         bytesRead = 0
+        console.log 'raw response', data
         loop
-            length = HEADER_LENGTH + data.readUInt32LE (OFFSET.bodyLength + bytesRead)
-            @processResponse new Buffer data, length, bytesRead
-            bytesRead += length
-            return if data.length is bytesRead
+            header = parseHeader data.slice bytesRead, bytesRead + HEADER_LENGTH
+            bytesRead += HEADER_LENGTH
+            
+            if header.requestType is REQUEST_TYPE.ping
+                returnCode = 0
+            else
+                returnCode = data.readUInt32LE bytesRead
+                bytesRead += 4
+                header.bodyLength -= 4 # what is bodyLength, then?
+            
+            @processResponse header, returnCode, data.slice bytesRead, bytesRead + header.bodyLength
+            bytesRead += header.bodyLength
+            console.log 'read ' + bytesRead + ' octets of ' + data.length
+            break if data.length is bytesRead
+        return
     
-    
-    processResponse: (data) ->
-        header = parseHeader data
-        if header.requestType is REQUEST_TYPE.ping
-            returnCode = 0
-            body = new Buffer data, header.bodyLength, HEADER_LENGTH
-        else
-            returnCode = data.readUInt32LE HEADER_LENGTH
-            body = new Buffer data, header.bodyLength, HEADER_LENGTH + 4
-        
+    processResponse: (header, returnCode, body) ->
         console.log 'response', header, returnCode, body
         
         if @callbacks[header.callbackId]?
