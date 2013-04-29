@@ -109,7 +109,4 @@ class TarantoolTransport
         @socket.write header
         @socket.write body
     
-    
-    ping: (callback) -> @request REQUEST_TYPE.ping, (new Buffer 0), callback
-    
 module.exports = TarantoolTransport
