@@ -28,48 +28,57 @@ parseHeader = (data) ->
     callbackId : data.readUInt32LE OFFSET.callbackId
 
 class TarantoolTransport
-    # lets export some useful constants
-    @requestTypes = REQUEST_TYPE
-    
-    # # header processor # #
-    
-    processRawResponse: (data) ->
-        bytesRead = 0
-        console.log 'raw response', data
-        loop
-            header = parseHeader data.slice bytesRead, bytesRead + HEADER_LENGTH
-            bytesRead += HEADER_LENGTH
-            
-            if header.requestType is REQUEST_TYPE.ping
-                returnCode = 0
-            else
-                returnCode = data.readUInt32LE bytesRead
-                bytesRead += 4
-                header.bodyLength -= 4 # what is bodyLength, then?
-            
-            @processResponse header, returnCode, data.slice bytesRead, bytesRead + header.bodyLength
-            bytesRead += header.bodyLength
-            console.log 'read ' + bytesRead + ' octets of ' + data.length
-            break if data.length is bytesRead
-        return
-    
-    processResponse: (header, returnCode, body) ->
-        console.log 'response', header, returnCode, body
-        
-        if @callbacks[header.callbackId]?
-            @callbacks[header.callbackId] header, returnCode, body
-            delete @callbacks[header.callbackId] # let's prevent memory leak
-        else
-            console.error 'trying to call removed callback #' + header.callbackId
-        return
-        
-    # # constructor # #
-    
     constructor: (host, port, callback) ->
         @socket = (require 'net').connect port, host, callback
         @socket.on 'data', @processRawResponse.bind @
     
-    # # request input and callback management # #
+    # # header processor # #
+
+    remainder: null
+    
+    processRawResponse: (data) ->
+        bytesRead = 0
+        console.log 'raw response', data
+        
+        if @remainder?
+            data = Buffer.concat [@remainder, data]
+            @remainder = null
+        
+        loop
+            # enough data to read header?
+            if data.length < HEADER_LENGTH
+                @remainder = data.slice bytesRead, data.length
+                break
+            
+            header = parseHeader data.slice bytesRead, bytesRead + HEADER_LENGTH
+            
+            # enough data to read body?
+            if data.length < HEADER_LENGTH + header.bodyLength
+                @remainder = data.slice bytesRead, data.length
+                break
+            
+            bytesRead += HEADER_LENGTH
+            
+            @processResponse header, data.slice bytesRead, bytesRead + header.bodyLength
+            bytesRead += header.bodyLength
+            
+            console.log 'read ' + bytesRead + ' octets of ' + data.length
+            break if data.length is bytesRead
+        console.log 'remainder left', @remainder if @remainder?
+        return
+    
+    processResponse: (header, body) ->
+        console.log 'response', header, body
+        
+        if @callbacks[header.callbackId]?
+            @callbacks[header.callbackId] null, header, body
+            delete @callbacks[header.callbackId] # let's prevent memory leak
+        else
+            console.error 'trying to call removed callback #' + header.callbackId
+            process.exit 1
+        return
+        
+    # # requests and callback management # #
     
     callbacks: {}
     
@@ -98,4 +107,6 @@ class TarantoolTransport
     
     ping: (callback) -> @request REQUEST_TYPE.ping, (new Buffer 0), callback
     
-module.exports = TarantoolTransport
+module.exports =
+    REQUEST_TYPE: REQUEST_TYPE
+    Transport: TarantoolTransport
