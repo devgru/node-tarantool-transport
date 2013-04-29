@@ -28,8 +28,13 @@ parseHeader = (data) ->
     callbackId : data.readUInt32LE OFFSET.callbackId
 
 class TarantoolTransport
-    constructor: (host, port, callback) ->
-        @socket = (require 'net').connect port, host, callback
+    @requestTypes = REQUEST_TYPE
+    
+    @connect: (port, host, callback) ->
+        socket = (require 'net').connect port, host, callback
+        new TarantoolTransport socket
+    
+    constructor: (@socket) ->
         @socket.on 'data', @processRawResponse.bind @
     
     # # header processor # #
@@ -107,6 +112,4 @@ class TarantoolTransport
     
     ping: (callback) -> @request REQUEST_TYPE.ping, (new Buffer 0), callback
     
-module.exports =
-    REQUEST_TYPE: REQUEST_TYPE
-    Transport: TarantoolTransport
+module.exports = TarantoolTransport
