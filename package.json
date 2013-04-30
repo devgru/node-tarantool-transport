@@ -1,6 +1,6 @@
 {
   "name": "tarantool-transport",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A node.js transport for Tarantool",
   "files": ["lib"],
   "main": "./lib",
@@ -14,7 +14,6 @@
     "url": "https://github.com/devgru/node-tarantool-transport.git"
   },
   "dependencies": {
-    "leb": "*"
   },
   "devDependencies": {
     "coffee-script": "*"

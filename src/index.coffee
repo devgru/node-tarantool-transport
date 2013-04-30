@@ -1,11 +1,3 @@
-REQUEST_TYPE =
-    insert: 13
-    select: 17
-    update: 19
-    delete: 21
-    call  : 22
-    ping  : 65280
-
 OFFSET = # we are talking about uint32 mostly, so step is 4 at most cases
     requestType: 0
     bodyLength : 4
@@ -28,8 +20,6 @@ parseHeader = (data) ->
     callbackId : data.readUInt32LE OFFSET.callbackId
 
 class TarantoolTransport
-    @requestTypes = REQUEST_TYPE
-    
     @connect: (port, host, callback) ->
         socket = (require 'net').connect port, host, callback
         new TarantoolTransport socket
@@ -76,7 +66,7 @@ class TarantoolTransport
         console.log 'response', header, body
         
         if @callbacks[header.callbackId]?
-            @callbacks[header.callbackId] null, header, body
+            @callbacks[header.callbackId] header, body
             delete @callbacks[header.callbackId] # let's prevent memory leak
         else
             console.error 'trying to call removed callback #' + header.callbackId

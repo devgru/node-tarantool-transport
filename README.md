@@ -1,4 +1,4 @@
-Alpha version of Tarantool transport for node.js
+Alpha version of [Tarantool](http://tarantool.org) transport for [node.js](http://nodejs.org)
 
 Check current src/test.coffee for examples of usage.
 
