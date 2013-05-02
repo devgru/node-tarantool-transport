@@ -99,4 +99,7 @@ class TarantoolTransport
         @socket.write header
         @socket.write body
     
+    end: ->
+        @socket.end()
+    
 module.exports = TarantoolTransport
