@@ -1,14 +1,24 @@
 Beta version of [Tarantool](http://tarantool.org) transport for [node.js](http://nodejs.org)
 
-Transport deals with:
-- tcp connection incapsulation
+Transport deals with low-level protocol tasks:
 - composing request headers
 - parsing response headers
 - callback management
-- response composition from several tcp packets **(still untested)**
+- socket incapsulation
+- response composition from several data packets **(still untested)**
 
-[Connector] @devgru/node-tarantool uses Transport to compose and parse request and response bodies.
-More likely you will want to use Connector, not Transport.
+[Connector](https://github.com/devgru/node-tarantool) uses Transport to compose and parse request and response bodies.
+
+**More likely you are looking for [Connector](https://github.com/devgru/node-tarantool), not Transport.**
+
+Transport can be used to create your own implementation of Tarantool-protocol composer or parser.
+
+NPM
+---
+
+```shell
+npm install tarantool-transport
+```
 
 How to use
 ----------
@@ -16,10 +26,10 @@ How to use
 ```coffee
 Transport = require 'tarantool-transport'
 
-tarantoolConnection = tc = Transport.connect 33013, 'localhost', ->
+tarantoolConnection = Transport.connect 33013, 'localhost', ->
     console.log 'connected to local tarantool'
     
-    tc.request 65280, '', ->
+    tarantoolConnection.request 65280, '', ->
         console.log 'got ping response'
 ```
 
@@ -46,3 +56,8 @@ Callback will receive Buffer, containing response body.
 ### transport.end () ->
 
 Calls [`end()`](http://nodejs.org/api/net.html#net_socket_end_data_encoding) on Socket.
+
+LICENSE
+-------
+
+Tarantool Transport for node.js is published under MIT license.
