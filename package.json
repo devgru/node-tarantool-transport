@@ -1,6 +1,6 @@
 {
   "name": "tarantool-transport",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "description": "A node.js transport for Tarantool",
   "files": ["lib"],
   "main": "./lib",
