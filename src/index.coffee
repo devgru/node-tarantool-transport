@@ -54,7 +54,7 @@ class TarantoolTransport
             
             bytesRead += HEADER_LENGTH
             
-            @processResponse header, data.slice bytesRead, bytesRead + header.bodyLength
+            @processResponse header.callbackId, data.slice bytesRead, bytesRead + header.bodyLength
             bytesRead += header.bodyLength
             
             console.log 'read ' + bytesRead + ' octets of ' + data.length
@@ -62,14 +62,14 @@ class TarantoolTransport
         console.log 'remainder left', @remainder if @remainder?
         return
     
-    processResponse: (header, body) ->
-        console.log 'response', header, body
+    processResponse: (callbackId, body) ->
+        console.log 'response', callbackId, body
         
-        if @callbacks[header.callbackId]?
-            @callbacks[header.callbackId] header, body
-            delete @callbacks[header.callbackId] # let's prevent memory leak
+        if @callbacks[callbackId]?
+            @callbacks[callbackId] body
+            delete @callbacks[callbackId] # let's prevent memory leak
         else
-            console.error 'trying to call removed callback #' + header.callbackId
+            console.error 'trying to call removed callback #' + callbackId
             process.exit 1
         return
         
