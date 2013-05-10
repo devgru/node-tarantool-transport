@@ -40,7 +40,7 @@ API
 
 ### new Transport (Socket) -> Transport
 
-Creates Transport using Socket, which can be any object, with `write(Buffer or String)`, `end()` and `on(String, Function)` methods.
+Creates Transport using Socket, which can be any object, with `write(Buffer or String)`, `ref()`, `unref()` and `on(String, Function)` methods.
 
 ### Transport.connect (port, host, callback) -> Transport
 
@@ -52,10 +52,6 @@ Sends Tarantool request.
 Type must be Integer, any valid request type.
 Body must be Buffer (preferrable) or String (empty string is usable, see example above).
 Callback will receive Buffer, containing response body.
-
-### transport.end () ->
-
-Calls [`end()`](http://nodejs.org/api/net.html#net_socket_end_data_encoding) on Socket.
 
 LICENSE
 -------

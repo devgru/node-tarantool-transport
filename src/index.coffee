@@ -1,7 +1,7 @@
 OFFSET = # we are talking about uint32 mostly, so step is 4 at most cases
     requestType: 0
     bodyLength : 4
-    callbackId : 8 # yes, this is actually requestId
+    callbackId : 8 # this is also request id
 
 HEADER_LENGTH = 12
 
@@ -25,16 +25,14 @@ class TarantoolTransport
         new TarantoolTransport socket
     
     constructor: (@socket) ->
-        @socket.on 'data', @processRawResponse.bind @
+        @socket.unref()
+        @socket.on 'data', @dataReceived.bind @
     
-    # # header processor # #
+    # # response processing # #
 
     remainder: null
     
-    processRawResponse: (data) ->
-        bytesRead = 0
-        console.log 'raw response', data
-        
+    dataReceived: (data) ->
         if @remainder?
             data = Buffer.concat [@remainder, data]
             @remainder = null
@@ -42,35 +40,34 @@ class TarantoolTransport
         loop
             # enough data to read header?
             if data.length < HEADER_LENGTH
-                @remainder = data.slice bytesRead, data.length
+                @remainder = data
                 break
             
-            header = parseHeader data.slice bytesRead, bytesRead + HEADER_LENGTH
+            header = parseHeader data
+            responseLength = HEADER_LENGTH + header.bodyLength
             
             # enough data to read body?
-            if data.length < HEADER_LENGTH + header.bodyLength
-                @remainder = data.slice bytesRead, data.length
+            if data.length < responseLength
+                @remainder = data
                 break
             
-            bytesRead += HEADER_LENGTH
+            # process this response and, maybe we're done?
+            @processResponse header.callbackId, data.slice HEADER_LENGTH, responseLength
+            break if data.length is responseLength
             
-            @processResponse header.callbackId, data.slice bytesRead, bytesRead + header.bodyLength
-            bytesRead += header.bodyLength
-            
-            console.log 'read ' + bytesRead + ' octets of ' + data.length
-            break if data.length is bytesRead
-        console.log 'remainder left', @remainder if @remainder?
+            # there is more data, loop repeats
+            data = data.slice responseLength, data.length
         return
     
     processResponse: (callbackId, body) ->
-        console.log 'response', callbackId, body
-        
         if @callbacks[callbackId]?
             @callbacks[callbackId] body
-            delete @callbacks[callbackId] # let's prevent memory leak
+            delete @callbacks[callbackId]
+            
+            @responsesAwaiting--
+            @socket.unref() if @responsesAwaiting is 0
         else
-            console.error 'trying to call removed callback #' + callbackId
-            process.exit 1
+            throw new Error 'trying to call removed callback #' + callbackId
         return
         
     # # requests and callback management # #
@@ -80,10 +77,12 @@ class TarantoolTransport
     # each request has its own callback, found by id
     nextCallbackId: 0
     
-    
     registerCallback: (callback) ->
         callbackId = @nextCallbackId
         @callbacks[callbackId] = callback
+        
+        @responsesAwaiting++
+        @socket.ref() if @responsesAwaiting is 1
         
         if callbackId is 4294967295 # tarantool limitation
             @nextCallbackId = 0
@@ -92,14 +91,11 @@ class TarantoolTransport
         
         callbackId # registered
     
+    responsesAwaiting: 0
     
     request: (type, body, callback) ->
         header = composeHeader type, body.length, @registerCallback callback
-        console.log 'request', header, body
         @socket.write header
         @socket.write body
-    
-    end: ->
-        @socket.end()
     
 module.exports = TarantoolTransport
