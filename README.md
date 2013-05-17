@@ -5,7 +5,7 @@ Transport deals with low-level protocol tasks:
 - parsing response headers
 - callback management
 - socket incapsulation
-- response composition from several data packets **(still untested)**
+- response composition from several data packets
 
 [Connector](https://github.com/devgru/node-tarantool) uses Transport to compose and parse request and response headers.
 
