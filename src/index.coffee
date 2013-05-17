@@ -25,7 +25,7 @@ class TarantoolTransport
         new TarantoolTransport socket
     
     constructor: (@socket) ->
-        @socket.unref()
+        do @socket.unref
         @socket.on 'data', @dataReceived.bind @
     
     # # response processing # #
@@ -65,7 +65,7 @@ class TarantoolTransport
             delete @callbacks[callbackId]
             
             @responsesAwaiting--
-            @socket.unref() if @responsesAwaiting is 0
+            do @socket.unref if @responsesAwaiting is 0
         else
             throw new Error 'trying to call removed callback #' + callbackId
         return
@@ -82,7 +82,7 @@ class TarantoolTransport
         @callbacks[callbackId] = callback
         
         @responsesAwaiting++
-        @socket.ref() if @responsesAwaiting is 1
+        do @socket.ref if @responsesAwaiting is 1
         
         if callbackId is 4294967295 # tarantool limitation
             @nextCallbackId = 0
