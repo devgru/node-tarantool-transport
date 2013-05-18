@@ -96,5 +96,6 @@ class TarantoolTransport
         header = composeHeader type, body.length, @registerCallback callback
         @socket.write header
         @socket.write body
+        return
     
 module.exports = TarantoolTransport
