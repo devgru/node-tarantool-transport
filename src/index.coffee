@@ -26,8 +26,7 @@ class TarantoolTransport
     
     constructor: (@socket) ->
         do @socket.unref
-        @socket.on 'data', @dataReceived.bind @
-    
+        @socket.on 'data', (data) => @dataReceived data
     # # response processing # #
 
     remainder: null
