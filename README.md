@@ -1,4 +1,4 @@
-# Tarantool [node.js](http://nodejs.org) Transport — low-level driver for [Tarantool](http://tarantool.org).
+# Tarantool [node.js](http://nodejs.org) Transport — low-level [Tarantool](http://tarantool.org) driver.
 
 Transport composes request headers, parses response headers, manages callbacks and incapsulates socket composing response from several data packets.
 
