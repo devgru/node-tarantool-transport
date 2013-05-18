@@ -1,29 +1,25 @@
 {
   "name": "tarantool-transport",
-  "version": "0.2.2",
-  "description": "A node.js transport for Tarantool",
+  "version": "0.2.3-docs1",
+  "description": "Low-level Tarantool driver for node.js",
   "files": ["lib"],
   "main": "./lib",
   "scripts": {
-    "build": "coffee --bare --compile --lint --output lib src/*.coffee",
     "prepublish": "coffee --bare --compile --lint --output lib src/*.coffee",
-    "postpublish": "rm -rf lib"
+    "postpublish": "rm -rf lib",
+    "test": "./node_modules/.bin/nodeunit test"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/devgru/node-tarantool-transport.git"
   },
-  "dependencies": {
-  },
   "devDependencies": {
     "coffee-script": "*",
-    "grunt": "*",
-    "grunt-contrib-nodeunit": "~0.1.2"
+    "nodeunit": "*"
   },
-
   "keywords": [
     "tarantool"
   ],
-  "author": "Devgru <git@devg.ru>",
+  "author": "Devgru <git@devg.ru> (http://devg.ru)",
   "license": "MIT"
 }
