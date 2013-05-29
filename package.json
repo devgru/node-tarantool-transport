@@ -1,6 +1,6 @@
 {
   "name": "tarantool-transport",
-  "version": "0.2.3-alpha-streams2",
+  "version": "0.3.0-alpha",
   "description": "Low-level Tarantool driver for node.js",
   "files": ["lib"],
   "main": "./lib",
@@ -20,6 +20,7 @@
   "keywords": [
     "tarantool"
   ],
+  "engines": { "node": ">=0.10" },
   "author": "Devgru <git@devg.ru> (http://devg.ru)",
   "license": "MIT"
 }
