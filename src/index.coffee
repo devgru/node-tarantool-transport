@@ -26,36 +26,32 @@ class TarantoolTransport
     
     constructor: (@socket) ->
         do @socket.unref
-        @socket.on 'data', (data) => @dataReceived data
+        @socket.on 'readable', => do @dataReceived
+    
     # # response processing # #
 
-    remainder: null
-    
-    dataReceived: (data) ->
-        if @remainder?
-            data = Buffer.concat [@remainder, data]
-            @remainder = null
+    lastHeader: null
+
+    dataReceived: ->
+        if lastHeader
+            header = lastHeader
+            lastHeader = null
+        else
+            header = @socket.read 12
+            return if not header
+            header = parseHeader header
         
-        loop
-            # enough data to read header?
-            if data.length < HEADER_LENGTH
-                @remainder = data
-                break
-            
-            header = parseHeader data
-            responseLength = HEADER_LENGTH + header.bodyLength
-            
-            # enough data to read body?
-            if data.length < responseLength
-                @remainder = data
-                break
-            
-            # process this response and, maybe we're done?
-            @processResponse header.callbackId, data.slice HEADER_LENGTH, responseLength
-            break if data.length is responseLength
-            
-            # there is more data, loop repeats
-            data = data.slice responseLength, data.length
+        if header.bodyLength
+            body = @socket.read header.bodyLength
+            if not body
+                lastHeader = header
+                return
+        else
+            body = new Buffer 0
+        
+        @processResponse header.callbackId, body
+        
+        do @dataReceived
         return
     
     processResponse: (callbackId, body) ->
