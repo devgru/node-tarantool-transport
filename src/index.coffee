@@ -26,7 +26,7 @@ class TarantoolTransport
     
     constructor: (@socket) ->
         do @socket.unref
-        @socket.setNoDelay true
+        do @socket.setNoDelay
         @socket.on 'data', (data) => @dataReceived data
     # # response processing # #
 
