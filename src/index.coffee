@@ -1,7 +1,9 @@
-OFFSET = # we are talking about uint32 mostly, so step is 4 at most cases
+net = required 'net'
+
+OFFSET =
     requestType: 0
     bodyLength : 4
-    callbackId : 8 # this is also request id
+    callbackId : 8
 
 HEADER_LENGTH = 12
 
@@ -20,9 +22,11 @@ parseHeader = (data) ->
     callbackId : data.readUInt32LE OFFSET.callbackId
 
 class TarantoolTransport
+    
     # # constructors # #
+    
     @connect: (port, host, callback) ->
-        socket = (require 'net').connect port, host, callback
+        socket = net.connect port, host, callback
         new TarantoolTransport socket
     
     constructor: (@socket) ->
@@ -53,8 +57,9 @@ class TarantoolTransport
                 @remainder = data
                 break
             
-            # process this response and, maybe we're done?
+            # process this response
             @processResponse header.callbackId, data.slice HEADER_LENGTH, responseLength
+            # are we finished yet?
             break if data.length is responseLength
             
             # there is more data, loop repeats
@@ -69,22 +74,23 @@ class TarantoolTransport
             @responsesAwaiting--
             do @socket.unref if @responsesAwaiting is 0
         else
-            throw new Error 'trying to call removed callback #' + callbackId
+            throw new Error 'trying to call absent callback #' + callbackId
         return
         
     # # requests and callback management # #
     
-    callbacks: {}
-    
-    # each request has its own callback, found by id
     nextCallbackId: 0
     
+    callbacks: {}
+    
+    responsesAwaiting: 0
+    
     registerCallback: (callback) ->
-        callbackId = @nextCallbackId
-        @callbacks[callbackId] = callback
-        
         @responsesAwaiting++
         do @socket.ref if @responsesAwaiting is 1
+        
+        callbackId = @nextCallbackId
+        @callbacks[callbackId] = callback
         
         if callbackId is 4294967295 # tarantool limitation
             @nextCallbackId = 0
@@ -92,8 +98,6 @@ class TarantoolTransport
             @nextCallbackId++
         
         callbackId # registered
-    
-    responsesAwaiting: 0
     
     request: (type, body, callback) ->
         header = composeHeader type, body.length, @registerCallback callback
