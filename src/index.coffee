@@ -20,6 +20,7 @@ parseHeader = (data) ->
     callbackId : data.readUInt32LE OFFSET.callbackId
 
 class TarantoolTransport
+    # # constructors # #
     @connect: (port, host, callback) ->
         socket = (require 'net').connect port, host, callback
         new TarantoolTransport socket
@@ -28,8 +29,9 @@ class TarantoolTransport
         do @socket.unref
         do @socket.setNoDelay
         @socket.on 'data', (data) => @dataReceived data
+    
     # # response processing # #
-
+    
     remainder: null
     
     dataReceived: (data) ->
