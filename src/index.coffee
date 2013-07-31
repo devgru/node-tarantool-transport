@@ -1,4 +1,4 @@
-net = required 'net'
+net = require 'net'
 
 OFFSET =
     requestType: 0
