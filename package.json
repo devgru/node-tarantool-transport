@@ -1,6 +1,6 @@
 {
   "name": "tarantool-transport",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Low-level Tarantool driver for node.js",
   "files": ["lib"],
   "main": "./lib",
